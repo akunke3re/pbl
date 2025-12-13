@@ -1,0 +1,333 @@
+<?php
+require_once 'includes/auth.php';
+require_once '../config/database.php';
+
+$pageTitle = 'Organizational Structure Management';
+$db = new Database();
+
+$success = '';
+$error = '';
+
+/* ================================
+   HELPER: UPLOAD FILE KE TABEL FILES
+================================ */
+function uploadFileToFilesTable($db, $fileInputName) {
+    if (!isset($_FILES[$fileInputName]) || $_FILES[$fileInputName]['error'] !== 0) {
+        return null;
+    }
+
+    $uploadDir = '../uploads/struktur/';
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0777, true);
+    }
+
+    $fileName = time() . '_' . basename($_FILES[$fileInputName]['name']);
+    $targetPath = $uploadDir . $fileName;
+
+    if (move_uploaded_file($_FILES[$fileInputName]['tmp_name'], $targetPath)) {
+        // Get mime type
+        $mimeType = mime_content_type($targetPath);
+        
+        // Escape values for SQL
+        $fileNameEsc = $db->escape($fileName);
+        $pathEsc = $db->escape('uploads/struktur');
+        $mimeTypeEsc = $db->escape($mimeType);
+
+        // Insert to files table and return ID
+        $sql = "INSERT INTO files (filename, path, mime_type) 
+                VALUES ('$fileNameEsc', '$pathEsc', '$mimeTypeEsc') 
+                RETURNING id";
+        
+        $result = $db->query($sql);
+        if ($result) {
+            $row = $db->fetch($result);
+            return $row['id'] ?? null;
+        }
+    }
+
+    return null;
+}
+
+/* ================================
+   DELETE DATA
+================================ */
+if (isset($_GET['delete'])) {
+    $id = (int)$_GET['delete'];
+    if ($db->query("DELETE FROM struktur_organisasi WHERE id = $id")) {
+        $success = 'Data successfully deleted!';
+    } else {
+        $error = 'Failed to delete data!';
+    }
+}
+
+/* ================================
+   ADD / EDIT DATA
+================================ */
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+
+    $jabatan = $db->escape($_POST['jabatan']);
+    $nama = $db->escape($_POST['nama']);
+    $deskripsi = $db->escape($_POST['deskripsi'] ?? '');
+    $fotoId = null;
+
+    // Get or create dosen record
+    $dosenId = null;
+    if ($deskripsi) {
+        $dosenCheck = $db->query("SELECT id FROM dosen WHERE deskripsi = '$deskripsi' LIMIT 1");
+        $dosenRow = $db->fetch($dosenCheck);
+        if ($dosenRow) {
+            $dosenId = $dosenRow['id'];
+            // Update nama if changed
+            $db->query("UPDATE dosen SET nama = '$nama' WHERE id = $dosenId");
+        } else {
+            // Create new dosen
+            $db->query("INSERT INTO dosen (deskripsi, nama) VALUES ('$deskripsi', '$nama')");
+            $dosenCheck = $db->query("SELECT id FROM dosen WHERE deskripsi = '$deskripsi' LIMIT 1");
+            $dosenRow = $db->fetch($dosenCheck);
+            if ($dosenRow) {
+                $dosenId = $dosenRow['id'];
+            }
+        }
+    } else {
+        // If no Deskripsi, check if dosen exists by name
+        $dosenCheck = $db->query("SELECT id FROM dosen WHERE nama = '$nama' LIMIT 1");
+        $dosenRow = $db->fetch($dosenCheck);
+        if ($dosenRow) {
+            $dosenId = $dosenRow['id'];
+        } else {
+            // Create new dosen without Deskripsi
+            $db->query("INSERT INTO dosen (deskripsi, nama) VALUES ('', '$nama')");
+            $dosenCheck = $db->query("SELECT id FROM dosen WHERE nama = '$nama' ORDER BY id DESC LIMIT 1");
+            $dosenRow = $db->fetch($dosenCheck);
+            if ($dosenRow) {
+                $dosenId = $dosenRow['id'];
+            }
+        }
+    }
+
+    // Upload foto to files table
+    $fotoId = uploadFileToFilesTable($db, 'foto', 'image');
+
+    if ($dosenId) {
+        if ($id > 0) {
+            // UPDATE
+            $sql = "UPDATE struktur_organisasi 
+                    SET id_dosen=$dosenId, jabatan='$jabatan'";
+            
+            // Only update foto_id if new file was uploaded
+            if ($fotoId) {
+                $sql .= ", foto_id=$fotoId";
+            }
+            
+            $sql .= ", updated_at=CURRENT_TIMESTAMP WHERE id=$id";
+        } else {
+            // INSERT
+            if ($fotoId) {
+                $sql = "INSERT INTO struktur_organisasi (id_dosen, jabatan, foto_id)
+                        VALUES ($dosenId, '$jabatan', $fotoId)";
+            } else {
+                $sql = "INSERT INTO struktur_organisasi (id_dosen, jabatan)
+                        VALUES ($dosenId, '$jabatan')";
+            }
+        }
+
+        if ($db->query($sql)) {
+            $success = 'Data successfully saved!';
+        } else {
+            $error = 'Failed to save data!';
+        }
+    } else {
+        $error = 'Failed to create/retrieve dosen data!';
+    }
+}
+
+/* ================================
+   GET DATA
+================================ */
+/*
+Ranking jabatan (besar ke kecil):
+1. Ketua Laboratorium
+2. Wakil Ketua
+3. Sekretaris
+4. Bendahara
+5. Koordinator
+6. Anggota
+*/
+$result = $db->query("SELECT * FROM get_struktur_organisasi_list()");
+$data = $db->fetchAll($result);
+
+// Edit mode
+$editData = null;
+if (isset($_GET['edit'])) {
+    $editId = (int)$_GET['edit'];
+    $editRes = $db->query("
+            SELECT 
+                so.*, 
+                d.nama, 
+                d.deskripsi,
+            (f.path || '/' || f.filename) AS foto_path
+        FROM struktur_organisasi so
+        LEFT JOIN dosen d ON so.id_dosen = d.id
+        LEFT JOIN files f ON so.foto_id = f.id
+        WHERE so.id = $editId LIMIT 1
+    ");
+    $editData = $db->fetch($editRes);
+}
+
+include 'includes/header.php';
+?>
+
+<?php if ($success): ?>
+<div class="bg-green-50 border-l-4 border-green-500 p-4 mb-6 rounded">
+    <p class="text-green-700"><?php echo $success; ?></p>
+</div>
+<?php endif; ?>
+
+<?php if ($error): ?>
+<div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded">
+    <p class="text-red-700"><?php echo $error; ?></p>
+</div>
+<?php endif; ?>
+
+<!-- FORM TAMBAH / EDIT -->
+<div class="bg-white rounded-xl shadow-md p-6 mb-6">
+    <h3 class="text-lg font-bold mb-4">
+        <?php echo $editData ? 'Edit Struktur' : 'Add Organizational Structure'; ?>
+    </h3>
+
+    <form method="POST" enctype="multipart/form-data">
+        <?php if ($editData): ?>
+            <input type="hidden" name="id" value="<?php echo $editData['id']; ?>">
+        <?php endif; ?>
+
+        <div class="grid md:grid-cols-2 gap-4 mb-4">
+
+            <div>
+                <label class="block font-semibold mb-2">Position *</label>
+                <select name="jabatan" required
+                        class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-300">
+                    <option value="">-- Choose Position --</option>
+
+                    <?php 
+                    $listJabatan = [
+                        "Head of Laboratory",
+                        "Vice Head",
+                        "Secretary",
+                        "Treasurer",
+                        "Coordinator",
+                        "Member"
+                    ];
+
+                    foreach ($listJabatan as $j): ?>
+                        <option value="<?php echo $j; ?>"
+                            <?php echo (isset($editData['jabatan']) && $editData['jabatan'] === $j) ? 'selected' : ''; ?>>
+                            <?php echo $j; ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div>
+                <label class="block font-semibold mb-2">Name *</label>
+                <input type="text" name="nama" required
+                       value="<?php echo htmlspecialchars($editData['nama'] ?? ''); ?>"
+                       class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-300">
+            </div>
+
+        </div>
+
+        <div class="grid gap-4 mb-4">
+            <div>
+                  <label class="block font-semibold mb-2">Description (Optional)</label>
+                  <input type="text" name="deskripsi"
+                      value="<?php echo htmlspecialchars($editData['deskripsi'] ?? ''); ?>"
+                       class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-300">
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label class="block font-semibold mb-2">Photo</label>
+            <input type="file" name="foto" accept="image/*"
+                   class="w-full px-4 py-2 border rounded-lg">
+
+            <?php if ($editData && !empty($editData['foto_path'])): ?>
+                <p class="mt-2 text-sm text-gray-600">Current Photo:</p>
+                <img src="../<?php echo htmlspecialchars($editData['foto_path']); ?>" class="w-24 h-24 rounded-lg mt-1 object-cover">
+            <?php endif; ?>
+        </div>
+
+        <div class="flex justify-end">
+            <?php if ($editData): ?>
+                <a href="struktur.php" class="px-4 py-2 bg-gray-300 rounded-lg mr-2">Cancel</a>
+            <?php endif; ?>
+
+            <button class="px-6 py-2 bg-blue-600 text-white rounded-lg">
+                Save
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- TABEL -->
+<div class="bg-white rounded-xl shadow-md overflow-hidden">
+    <table class="w-full">
+        <thead class="text-white" style="background-color: blue;">
+            <tr>
+                <th class="px-6 py-3 text-left">Photo</th>
+                <th class="px-6 py-3 text-left">Position</th>
+                <th class="px-6 py-3 text-left">Name</th>
+                <th class="px-6 py-3 text-left">Description</th>
+                <th class="px-6 py-3 text-center">Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        <?php if ($data): ?>
+            <?php foreach ($data as $row): ?>
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="px-6 py-4">
+                        <?php if (!empty($row['foto_path'])): ?>
+                            <img src="../<?php echo htmlspecialchars($row['foto_path']); ?>" class="w-12 h-12 rounded-full object-cover">
+                        <?php else: ?>
+                            <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
+                                <i class="fas fa-user text-gray-500"></i>
+                            </div>
+                        <?php endif; ?>
+                    </td>
+
+                    <td class="px-6 py-4 font-semibold"><?php echo htmlspecialchars($row['jabatan']); ?></td>
+                    <td class="px-6 py-4"><?php echo htmlspecialchars($row['nama']); ?></td>
+                    <td class="px-6 py-4"><?php echo htmlspecialchars($row['deskripsi'] ?: '-'); ?></td>
+
+                    <td class="px-6 py-4 text-center">
+                        <a href="?edit=<?php echo $row['id']; ?>" class="text-blue-600 mr-3">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="?delete=<?php echo $row['id']; ?>" 
+                           class="text-red-600" 
+                           onclick="return confirm('Delete this data?')">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                        <!-- Link to manage publikasi for this dosen -->
+                        <?php if (!empty($row['id_dosen'])): ?>
+                            <a href="publikasi.php?dosen_id=<?php echo $row['id_dosen']; ?>" class="text-green-600 ml-3" title="Manage Publications">
+                                <i class="fas fa-book"></i>
+                            </a>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <tr>
+                <td colspan="5" class="text-center py-8 text-gray-500">
+                    <i class="fas fa-inbox text-4xl mb-2"></i><br>
+                    Not data available.
+                </td>
+            </tr>
+        <?php endif; ?>
+        </tbody>
+    </table>
+</div>
+
+<?php include 'includes/footer.php'; ?>

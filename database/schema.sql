@@ -2,12 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict wc6p7X2yQOreiWl78bWU0Y20IbnysxZI9Nnn5yuIHCKKRZ3X03ZIelDporRtO7r
+\restrict lhxsm4k0TgwPNRPqgDY7yMJ0jFxckyXyOFcZLYtpfgem2X4qcz2cJDFoWASZx5S
 
 -- Dumped from database version 15.14
 -- Dumped by pg_dump version 15.14
 
--- Started on 2025-12-14 20:40:47
+-- Started on 2025-12-14 20:42:59
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -2564,11 +2564,11 @@ ALTER TABLE ONLY public.struktur_organisasi
     ADD CONSTRAINT fk_struktur_foto FOREIGN KEY (foto_id) REFERENCES public.files(id) ON DELETE SET NULL;
 
 
--- Completed on 2025-12-14 20:40:48
+-- Completed on 2025-12-14 20:43:00
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict wc6p7X2yQOreiWl78bWU0Y20IbnysxZI9Nnn5yuIHCKKRZ3X03ZIelDporRtO7r
+\unrestrict lhxsm4k0TgwPNRPqgDY7yMJ0jFxckyXyOFcZLYtpfgem2X4qcz2cJDFoWASZx5S
 

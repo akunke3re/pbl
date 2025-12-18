@@ -39,7 +39,7 @@ function uploadImageToFiles($db, $fileInputName = 'gambar') {
         $pathEsc = $db->escape('uploads/berita');
         $mimeTypeEsc = $db->escape($mimeType);
 
-        // Insert to files table and return ID
+        // Insert to files table and return ID (let sequence auto-generate ID)
         $sql = "INSERT INTO files (filename, path, mime_type) 
                 VALUES ('$fileNameEsc', '$pathEsc', '$mimeTypeEsc') 
                 RETURNING id";
@@ -52,6 +52,25 @@ function uploadImageToFiles($db, $fileInputName = 'gambar') {
     }
 
     return ['error' => 'Failed to upload image'];
+}
+
+/* ================================
+   HELPER: DELETE OLD FILE FROM FILES TABLE
+================================ */
+function deleteOldFile($db, $fileId) {
+    if (!$fileId) return;
+    
+    // Get file info before deleting
+    $result = $db->query("SELECT path, filename FROM files WHERE id = " . (int)$fileId);
+    if ($result && $row = $db->fetch($result)) {
+        $filePath = '../' . $row['path'] . '/' . $row['filename'];
+        // Delete physical file if exists
+        if (file_exists($filePath)) {
+            @unlink($filePath);
+        }
+        // Delete from database
+        $db->query("DELETE FROM files WHERE id = " . (int)$fileId);
+    }
 }
 
 /* -------------------------------
@@ -113,10 +132,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['multi_delete'])) {
     if (!$error) {
         if ($id > 0) {
             // UPDATE
-            $check = $db->query("SELECT id FROM berita WHERE id = $id LIMIT 1");
+            $check = $db->query("SELECT id, image_id FROM berita WHERE id = $id LIMIT 1");
             if ($db->numRows($check) == 0) {
                 $error = 'No news data found!';
             } else {
+                $oldData = $db->fetch($check);
+                $oldImageId = $oldData['image_id'] ?? null;
+                
                 $sql = "UPDATE berita SET 
                         judul = '$judul',
                         isi = '$isi',
@@ -127,6 +149,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['multi_delete'])) {
                 // Only update image_id if new image was uploaded
                 if ($imageId) {
                     $sql .= ", image_id = $imageId";
+                    // Delete old file if exists and new file was uploaded
+                    if ($oldImageId) {
+                        deleteOldFile($db, $oldImageId);
+                    }
                 }
 
                 $sql .= ", updated_at = CURRENT_TIMESTAMP WHERE id = $id";

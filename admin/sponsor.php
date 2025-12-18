@@ -232,9 +232,16 @@ include 'includes/header.php';
             </div>
         <?php endif; ?>
 
-        <button class="px-6 py-2 bg-blue-600 text-white rounded-lg">
-            <?= $editData ? "Update" : "Save" ?>
-        </button>
+        <div class="flex justify-end gap-2">
+            <?php if ($editData): ?>
+                <a href="sponsor.php" class="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
+                    Cancel
+                </a>
+            <?php endif; ?>
+            <button class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                <?= $editData ? "Update" : "Save" ?>
+            </button>
+        </div>
     </form>
 </div>
 

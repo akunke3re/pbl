@@ -49,6 +49,25 @@ function uploadFileToFilesTable($db, $fileInputName) {
 }
 
 /* ================================
+   HELPER: DELETE OLD FILE FROM FILES TABLE
+================================ */
+function deleteOldFile($db, $fileId) {
+    if (!$fileId) return;
+    
+    // Get file info before deleting
+    $result = $db->query("SELECT path, filename FROM files WHERE id = " . (int)$fileId);
+    if ($result && $row = $db->fetch($result)) {
+        $filePath = '../' . $row['path'] . '/' . $row['filename'];
+        // Delete physical file if exists
+        if (file_exists($filePath)) {
+            @unlink($filePath);
+        }
+        // Delete from database
+        $db->query("DELETE FROM files WHERE id = " . (int)$fileId);
+    }
+}
+
+/* ================================
    DELETE DATA
 ================================ */
 if (isset($_GET['delete'])) {
@@ -107,17 +126,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Upload foto to files table
-    $fotoId = uploadFileToFilesTable($db, 'foto', 'image');
+    $fotoId = uploadFileToFilesTable($db, 'foto');
 
     if ($dosenId) {
         if ($id > 0) {
             // UPDATE
+            // Get old foto_id before updating
+            $oldData = $db->query("SELECT foto_id FROM struktur_organisasi WHERE id = $id LIMIT 1");
+            $oldRow = $db->fetch($oldData);
+            $oldFotoId = $oldRow['foto_id'] ?? null;
+            
             $sql = "UPDATE struktur_organisasi 
                     SET id_dosen=$dosenId, jabatan='$jabatan'";
             
             // Only update foto_id if new file was uploaded
             if ($fotoId) {
                 $sql .= ", foto_id=$fotoId";
+                // Delete old file if exists
+                if ($oldFotoId) {
+                    deleteOldFile($db, $oldFotoId);
+                }
             }
             
             $sql .= ", updated_at=CURRENT_TIMESTAMP WHERE id=$id";
@@ -162,10 +190,10 @@ $editData = null;
 if (isset($_GET['edit'])) {
     $editId = (int)$_GET['edit'];
     $editRes = $db->query("
-            SELECT 
-                so.*, 
-                d.nama, 
-                d.deskripsi,
+        SELECT 
+            so.*, 
+            d.nama, 
+            d.deskripsi,
             (f.path || '/' || f.filename) AS foto_path
         FROM struktur_organisasi so
         LEFT JOIN dosen d ON so.id_dosen = d.id

@@ -135,19 +135,4 @@ include '../includes/header.php';
     </div>
 </section>
 
-<!-- CTA Section -->
-<section class="py-16 bg-gradient-to-br from-blue-600 to-blue-800 text-white">
-    <div class="container mx-auto px-6 text-center">
-        <h2 class="text-3xl font-bold mb-4" data-aos="fade-up">Tertarik Bergabung?</h2>
-        <p class="text-blue-100 mb-6 max-w-2xl mx-auto" data-aos="fade-up" data-aos-delay="100">
-            We are always open to researchers and students who want to contribute to research and innovation.
-        </p>
-        <a href="../index.php#contact"
-            class="inline-block px-8 py-4 bg-white text-blue-600 rounded-lg font-semibold hover-scale shadow-lg"
-            data-aos="fade-up" data-aos-delay="200">
-            <i class="fas fa-envelope mr-2"></i>Contact Us
-        </a>
-    </div>
-</section>
-
 <?php include '../includes/footer.php'; ?>

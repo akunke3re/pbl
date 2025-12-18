@@ -141,22 +141,4 @@ include '../includes/header.php';
     </div>
 </section>
 
-<!-- CTA Section -->
-<section class="py-16 bg-gradient-to-br from-blue-600 to-blue-800 text-white">
-    <div class="container mx-auto px-6 text-center">
-        <h2 class="text-3xl font-bold mb-4" data-aos="fade-up">Interested in becoming a partner or sponsor?</h2>
-        <p class="text-blue-100 mb-6 max-w-2xl mx-auto" data-aos="fade-up" data-aos-delay="100">
-            Join us and contribute to the development of technology and innovation with us.
-        </p>
-        <div class="flex justify-center space-x-4" data-aos="fade-up" data-aos-delay="200">
-            <a href="../index.php#contact" class="inline-block px-8 py-4 bg-white text-blue-600 rounded-lg font-semibold hover-scale shadow-lg">
-                <i class="fas fa-envelope mr-2"></i>Contact Us
-            </a>
-            <a href="mailto:partnership@lab.ac.id" class="inline-block px-8 py-4 bg-transparent border-2 border-white text-white rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition">
-                <i class="fas fa-handshake mr-2"></i>Partnership Inquiry
-            </a>
-        </div>
-    </div>
-</section>
-
 <?php include '../includes/footer.php'; ?>

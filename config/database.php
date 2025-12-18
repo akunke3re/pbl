@@ -1,6 +1,6 @@
 <?php
 // Database Configuration
-define('DB_HOST', 'localhost');
+define('DB_HOST', 'postgres_pbl');
 define('DB_PORT', '5432');
 define('DB_NAME', 'lab_kampusfix');
 define('DB_USER', 'postgres');

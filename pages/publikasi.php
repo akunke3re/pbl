@@ -43,8 +43,8 @@ if (isset($_GET['debug']) && $_GET['debug'] == '1') {
     echo "</div>";
 }
 
-// Get publikasi
-$pubRes = $db->query("SELECT id, judul, tahun, jenis, penerbit FROM get_publikasi_by_dosen($dosen_id)");
+// Get publikasi via view filtered by dosen
+$pubRes = $db->query("SELECT id, judul, tahun, jenis, penerbit FROM list_publikasi_by_dosen WHERE id_dosen = $dosen_id");
 $publikasi = $db->fetchAll($pubRes);
 
 include '../includes/header.php';

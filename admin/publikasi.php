@@ -116,12 +116,12 @@ $perPage = 10;
 $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
 $offset = ($page - 1) * $perPage;
 
-$countRes = $db->query("SELECT COUNT(*) AS total FROM publikasi WHERE id_dosen = $dosenId");
+$countRes = $db->query("SELECT COUNT(*) AS total FROM list_publikasi_by_dosen WHERE id_dosen = $dosenId");
 $countRow = $db->fetch($countRes);
 $totalRows = $countRow['total'];
 $totalPages = ceil($totalRows / $perPage);
 
-$pubsRes = $db->query("SELECT * FROM get_publikasi_by_dosen($dosenId) ORDER BY tahun DESC, id DESC LIMIT $perPage OFFSET $offset");
+$pubsRes = $db->query("SELECT * FROM list_publikasi_by_dosen WHERE id_dosen = $dosenId ORDER BY tahun DESC, id DESC LIMIT $perPage OFFSET $offset");
 $pubs = $db->fetchAll($pubsRes);
 
 // Edit data

@@ -6,8 +6,8 @@ $pageInPages = true;
 // Fetch data
 $db = new Database();
 
-// Get Struktur Organisasi with Dosen data and Files
-$strukturResult = $db->query("SELECT * FROM get_struktur_organisasi_list()");
+// Get Struktur Organisasi via view
+$strukturResult = $db->query("SELECT * FROM list_struktur_with_dosen");
 $struktur = $db->fetchAll($strukturResult);
 
 include '../includes/header.php';

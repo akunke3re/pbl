@@ -6,8 +6,8 @@ $pageInPages = true;
 // Fetch data
 $db = new Database();
 
-// Get Produk (only fields we need)
-$produkResult = $db->query("SELECT id, nama, gambar, link, deskripsi FROM produk ORDER BY created_at DESC");
+// Get Produk via DB view (list_produk)
+$produkResult = $db->query("SELECT id, nama, gambar, link, deskripsi FROM list_produk");
 $produk = $db->fetchAll($produkResult);
 
 include '../includes/header.php';

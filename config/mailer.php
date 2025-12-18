@@ -12,10 +12,10 @@ function sendMailSMTP($to, $subject, $htmlBody, $fromName = "Admin", $fromEmail 
     try {
         // SMTP SETTINGS
         $mail->isSMTP();
-        $mail->Host       = 'smtp.gmail.com';      // SMTP Server
+        $mail->Host       = 'smtp.gmail.com';     
         $mail->SMTPAuth   = true;
-        $mail->Username   = 'rahmattahaluqq@gmail.com';   // Ganti emailmu
-        $mail->Password   = 'chuk adcx aqcc skye';        // App Password Gmail
+        $mail->Username   = 'rahmattahaluqq@gmail.com';   
+        $mail->Password   = 'chuk adcx aqcc skye';        
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
         $mail->Port       = 465;
 

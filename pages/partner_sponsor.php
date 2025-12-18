@@ -8,14 +8,14 @@ $db = new Database();
 /* ============================================================
    FETCH PARTNER (kolaborasi.jenis = 'partner')
 ============================================================ */
-$partnerResult = $db->query("SELECT * FROM get_partners_list()");
+$partnerResult = $db->query("SELECT * FROM list_partners_with_logo");
 $partners = $db->fetchAll($partnerResult);
 
 /* ============================================================
    FETCH SPONSOR (selain partner)
    jenis: Internal, Eksternal, Kolaborasi
 ============================================================ */
-$sponsorResult = $db->query("SELECT * FROM get_sponsors_list()");
+$sponsorResult = $db->query("SELECT * FROM list_sponsors");
 $sponsors = $db->fetchAll($sponsorResult);
 
 include '../includes/header.php';

@@ -10,22 +10,25 @@ $perPage = 5;
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $offset = ($page - 1) * $perPage;
 
-/* TOTAL DATA */
-$countResult = $db->query("SELECT COUNT(*) AS total FROM berita");
+/* TOTAL DATA via view */
+$countResult = $db->query("SELECT COUNT(*) AS total FROM list_berita");
 $countRow = $db->fetch($countResult);
 $totalData = $countRow['total'];
 $totalPages = max(1, ceil($totalData / $perPage));
 
-/* AMBIL BERITA PER PAGE */
+/* AMBIL BERITA PER PAGE via view */
 $sql = "
     SELECT 
-        b.*, 
-        a.full_name AS uploader,
-        (f.path || '/' || f.filename) AS gambar_path
-    FROM berita b
-    LEFT JOIN admin_users a ON b.uploaded_by = a.id
-    LEFT JOIN files f ON b.image_id = f.id
-    ORDER BY b.tanggal DESC, b.created_at DESC
+        id,
+        judul,
+        deskripsi,
+        kategori,
+        tanggal,
+        image_path AS gambar_path,
+        created_at,
+        updated_at
+    FROM list_berita
+    ORDER BY tanggal DESC, created_at DESC
     LIMIT $perPage OFFSET $offset
 ";
 

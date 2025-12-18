@@ -70,8 +70,8 @@ if (isset($_GET['read'])) {
     $success = 'The message has been marked as read.';
 }
 
-/* FETCH DATA */
-$result = $db->query("SELECT * FROM get_contact_messages_list()");
+/* FETCH DATA via view */
+$result = $db->query("SELECT * FROM list_contact_messages");
 $data = $db->fetchAll($result);
 
 include 'includes/header.php';

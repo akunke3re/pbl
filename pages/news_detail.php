@@ -6,16 +6,20 @@ $db = new Database();
 // Validasi ID
 $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 
-// Ambil berita lengkap
+// Ambil berita lengkap via view
 $sql = "
     SELECT 
-        b.*, 
-        a.full_name AS uploader,
-        (f.path || '/' || f.filename) AS gambar_path
-    FROM berita b
-    LEFT JOIN admin_users a ON b.uploaded_by = a.id
-    LEFT JOIN files f ON b.image_id = f.id
-    WHERE b.id = $id
+        id,
+        judul,
+        isi,
+        deskripsi,
+        kategori,
+        tanggal,
+        image_path AS gambar_path,
+        created_at,
+        updated_at
+    FROM list_berita
+    WHERE id = $id
     LIMIT 1
 ";
 $res = $db->query($sql);

@@ -28,29 +28,13 @@ if ($sejarahRow && !empty($sejarahRow['data'])) {
 }
 
 // Get Struktur Organisasi with Dosen data and Files
-$strukturResult = $db->query("
-    SELECT 
-        so.*, 
-        d.nama, 
-        d.deskripsi,
-        (f.path || '/' || f.filename) AS foto_path
-    FROM struktur_organisasi so
-    LEFT JOIN dosen d ON so.id_dosen = d.id
-    LEFT JOIN files f ON so.foto_id = f.id
-    ORDER BY so.urutan ASC
-");
+// Get Struktur Organisasi via view
+$strukturResult = $db->query("SELECT * FROM list_struktur_with_dosen ORDER BY urutan ASC");
 $struktur = $db->fetchAll($strukturResult);
 
 // Get News/Announcements
-$newsResult = $db->query("
-    SELECT 
-        b.*,
-        (f.path || '/' || f.filename) AS gambar_path
-    FROM berita b
-    LEFT JOIN files f ON b.image_id = f.id
-    ORDER BY b.tanggal DESC, b.created_at DESC 
-    LIMIT 6
-");
+// Get News/Announcements via view
+$newsResult = $db->query("SELECT id, judul, deskripsi, kategori, tanggal, image_path AS gambar_path, created_at, updated_at FROM list_berita ORDER BY tanggal DESC, created_at DESC LIMIT 6");
 $news = $db->fetchAll($newsResult);
 
 // Get Gallery
@@ -71,10 +55,14 @@ $scope = $db->fetchAll($scopeResult);
 
 // Get Mission from database
 $missionResult = $db->query("SELECT * FROM get_mission_list()");
+// Get Mission via view
+$missionResult = $db->query("SELECT * FROM list_mission");
 $mission = $db->fetchAll($missionResult);
 
 // Get Priority Research Topics from database
 $priorityResult = $db->query("SELECT * FROM get_priority_list()");
+// Get Priority Research Topics via view
+$priorityResult = $db->query("SELECT * FROM list_priority");
 $researchTopics = $db->fetchAll($priorityResult);
 
 // Get Blueprint from database

@@ -49,25 +49,6 @@ function uploadFileToFilesTable($db, $fileInputName) {
 }
 
 /* ================================
-   HELPER: DELETE OLD FILE FROM FILES TABLE
-================================ */
-function deleteOldFile($db, $fileId) {
-    if (!$fileId) return;
-    
-    // Get file info before deleting
-    $result = $db->query("SELECT path, filename FROM files WHERE id = " . (int)$fileId);
-    if ($result && $row = $db->fetch($result)) {
-        $filePath = '../' . $row['path'] . '/' . $row['filename'];
-        // Delete physical file if exists
-        if (file_exists($filePath)) {
-            @unlink($filePath);
-        }
-        // Delete from database
-        $db->query("DELETE FROM files WHERE id = " . (int)$fileId);
-    }
-}
-
-/* ================================
    DELETE DATA
 ================================ */
 if (isset($_GET['delete'])) {
@@ -90,7 +71,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $deskripsi = $db->escape($_POST['deskripsi'] ?? '');
     $fotoId = null;
 
-    // Get or create dosen record
     $dosenId = null;
     if ($deskripsi) {
         $dosenCheck = $db->query("SELECT id FROM dosen WHERE deskripsi = '$deskripsi' LIMIT 1");
@@ -100,73 +80,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Update nama if changed
             $db->query("UPDATE dosen SET nama = '$nama' WHERE id = $dosenId");
         } else {
-            // Create new dosen
+            // Create new dosen with deskripsi
             $db->query("INSERT INTO dosen (deskripsi, nama) VALUES ('$deskripsi', '$nama')");
-            $dosenCheck = $db->query("SELECT id FROM dosen WHERE deskripsi = '$deskripsi' LIMIT 1");
+            $dosenCheck = $db->query("SELECT id FROM dosen WHERE deskripsi = '$deskripsi' ORDER BY id DESC LIMIT 1");
             $dosenRow = $db->fetch($dosenCheck);
             if ($dosenRow) {
                 $dosenId = $dosenRow['id'];
             }
         }
     } else {
-        // If no Deskripsi, check if dosen exists by name
-        $dosenCheck = $db->query("SELECT id FROM dosen WHERE nama = '$nama' LIMIT 1");
+        // Jika deskripsi kosong, selalu buat record baru di tabel dosen
+        $db->query("INSERT INTO dosen (deskripsi, nama) VALUES ('', '$nama')");
+        $dosenCheck = $db->query("SELECT id FROM dosen ORDER BY id DESC LIMIT 1");
         $dosenRow = $db->fetch($dosenCheck);
         if ($dosenRow) {
             $dosenId = $dosenRow['id'];
-        } else {
-            // Create new dosen without Deskripsi
-            $db->query("INSERT INTO dosen (deskripsi, nama) VALUES ('', '$nama')");
-            $dosenCheck = $db->query("SELECT id FROM dosen WHERE nama = '$nama' ORDER BY id DESC LIMIT 1");
-            $dosenRow = $db->fetch($dosenCheck);
-            if ($dosenRow) {
-                $dosenId = $dosenRow['id'];
-            }
         }
     }
 
     // Upload foto to files table
-    $fotoId = uploadFileToFilesTable($db, 'foto');
+    $fotoId = uploadFileToFilesTable($db, 'foto', 'image');
 
-    if ($dosenId) {
-        if ($id > 0) {
-            // UPDATE
-            // Get old foto_id before updating
-            $oldData = $db->query("SELECT foto_id FROM struktur_organisasi WHERE id = $id LIMIT 1");
-            $oldRow = $db->fetch($oldData);
-            $oldFotoId = $oldRow['foto_id'] ?? null;
-            
-            $sql = "UPDATE struktur_organisasi 
-                    SET id_dosen=$dosenId, jabatan='$jabatan'";
-            
-            // Only update foto_id if new file was uploaded
-            if ($fotoId) {
-                $sql .= ", foto_id=$fotoId";
-                // Delete old file if exists
-                if ($oldFotoId) {
-                    deleteOldFile($db, $oldFotoId);
-                }
-            }
-            
-            $sql .= ", updated_at=CURRENT_TIMESTAMP WHERE id=$id";
-        } else {
-            // INSERT
-            if ($fotoId) {
-                $sql = "INSERT INTO struktur_organisasi (id_dosen, jabatan, foto_id)
-                        VALUES ($dosenId, '$jabatan', $fotoId)";
-            } else {
-                $sql = "INSERT INTO struktur_organisasi (id_dosen, jabatan)
-                        VALUES ($dosenId, '$jabatan')";
-            }
+    // Selalu lanjutkan insert/update karena dosenId sudah pasti ada
+    if ($id > 0) {
+        // UPDATE
+        $sql = "UPDATE struktur_organisasi 
+                SET id_dosen=$dosenId, jabatan='$jabatan'";
+        
+        // Only update foto_id if new file was uploaded
+        if ($fotoId) {
+            $sql .= ", foto_id=$fotoId";
         }
-
-        if ($db->query($sql)) {
-            $success = 'Data successfully saved!';
-        } else {
-            $error = 'Failed to save data!';
-        }
+        
+        $sql .= ", updated_at=CURRENT_TIMESTAMP WHERE id=$id";
     } else {
-        $error = 'Failed to create/retrieve dosen data!';
+        // INSERT
+        if ($fotoId) {
+            $sql = "INSERT INTO struktur_organisasi (id_dosen, jabatan, foto_id)
+                    VALUES ($dosenId, '$jabatan', $fotoId)";
+        } else {
+            $sql = "INSERT INTO struktur_organisasi (id_dosen, jabatan)
+                    VALUES ($dosenId, '$jabatan')";
+        }
+    }
+
+    if ($db->query($sql)) {
+        $success = 'Data successfully saved!';
+    } else {
+        $error = 'Failed to save data!';
     }
 }
 
@@ -190,10 +151,10 @@ $editData = null;
 if (isset($_GET['edit'])) {
     $editId = (int)$_GET['edit'];
     $editRes = $db->query("
-        SELECT 
-            so.*, 
-            d.nama, 
-            d.deskripsi,
+            SELECT 
+                so.*, 
+                d.nama, 
+                d.deskripsi,
             (f.path || '/' || f.filename) AS foto_path
         FROM struktur_organisasi so
         LEFT JOIN dosen d ON so.id_dosen = d.id

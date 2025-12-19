@@ -243,15 +243,15 @@ $selectedIcon = $editData['icon'] ?? "";
 <!-- GRID -->
 <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
 <?php foreach ($data as $row): ?>
-    <div class="bg-white rounded-xl shadow-lg p-5 hover:shadow-xl transition">
+    <div class="bg-white rounded-xl shadow-lg p-5 hover:shadow-xl transition overflow-hidden">
         
         <div class="text-5xl mb-4 <?= $row['color'] ? '' : 'text-purple-600' ?>"
              style="color: <?= $row['color'] ?>;">
             <i class="<?= htmlspecialchars($row['icon']) ?>"></i>
         </div>
 
-        <h4 class="font-bold text-lg mb-2"><?= $row['title'] ?></h4>
-        <p class="text-gray-600 mb-3"><?= $row['description'] ?></p>
+        <h4 class="font-bold text-lg mb-2 break-all overflow-wrap-anywhere"><?= $row['title'] ?></h4>
+        <p class="text-gray-600 mb-3 break-all overflow-wrap-anywhere"><?= $row['description'] ?></p>
 
         <p class="text-xs text-gray-500 mb-2">
             Uploaded by: <b><?= $row['uploader'] ?: 'Unknown' ?></b>

@@ -124,7 +124,6 @@ include 'includes/header.php';
                     <tr class="border-b hover:bg-gray-50">
                         <td class="px-4 py-3"><?= htmlspecialchars($p['title']) ?></td>
                         <td class="px-4 py-3"><?= htmlspecialchars(substr($p['description'] ?? '', 0, 50)) ?>...</td>
-                        <td class="px-4 py-3"><?= $p['urutan'] ?></td>
                         <td class="px-4 py-3 space-x-2">
                             <a href="?edit=<?= $p['id'] ?>" class="text-blue-600 hover:underline">Edit</a>
                             <a href="?delete=<?= $p['id'] ?>" onclick="return confirm('Hapus?')" class="text-red-600 hover:underline">Delete</a>

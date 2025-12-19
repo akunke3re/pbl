@@ -124,7 +124,7 @@ include 'includes/header.php';
                     $scopeDesc = !empty($item['description']) ? $item['description'] : (!empty($item['deskripsi']) ? $item['deskripsi'] : '');
                     $delay = $index * 100;
                     ?>
-                    <div class="card-hover bg-white p-6 rounded-xl shadow-lg border-t-4 border-blue-600" data-aos="fade-up" data-aos-delay="<?= $delay ?>">
+                    <div class="card-hover bg-white p-6 rounded-xl shadow-lg border-t-4 border-blue-600 overflow-hidden" data-aos="fade-up" data-aos-delay="<?= $delay ?>">
                         <div class="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
                             <?php if (!empty($item['icon'])): ?>
                                 <i class="<?php echo htmlspecialchars($item['icon']); ?> text-3xl text-blue-600"></i>
@@ -132,8 +132,8 @@ include 'includes/header.php';
                                 <i class="fas fa-cog text-3xl text-blue-600"></i>
                             <?php endif; ?>
                         </div>
-                        <h3 class="text-xl font-bold mb-3 text-gray-800"><?php echo htmlspecialchars($scopeTitle); ?></h3>
-                        <p class="text-gray-600 text-sm leading-relaxed"><?php echo htmlspecialchars($scopeDesc); ?></p>
+                        <h3 class="text-xl font-bold mb-3 text-gray-800 break-all overflow-wrap-anywhere"><?php echo htmlspecialchars($scopeTitle); ?></h3>
+                        <p class="text-gray-600 text-sm leading-relaxed break-all overflow-wrap-anywhere"><?php echo htmlspecialchars($scopeDesc); ?></p>
                     </div>
                 <?php endforeach; ?>
             <?php else: ?>
@@ -379,12 +379,12 @@ include 'includes/header.php';
                             $iconColor = isset($colorMap[$color]) ? $colorMap[$color] : 'blue-600';
                             $delay = $index * 100;
                         ?>
-                        <div class="bg-gradient-to-br <?= $bgColor ?> p-6 rounded-xl shadow-lg card-hover border-t-4" data-aos="fade-up" data-aos-delay="<?= $delay ?>">
+                        <div class="bg-gradient-to-br <?= $bgColor ?> p-6 rounded-xl shadow-lg card-hover border-t-4 overflow-hidden" data-aos="fade-up" data-aos-delay="<?= $delay ?>">
                             <div class="w-12 h-12 bg-<?= $iconColor ?> rounded-full flex items-center justify-center mb-4">
                                 <i class="<?= $item['icon'] ?> text-white text-xl"></i>
                             </div>
-                            <h4 class="font-bold text-gray-800 mb-2"><?= htmlspecialchars($item['title']) ?></h4>
-                            <p class="text-sm text-gray-600"><?= htmlspecialchars($item['description']) ?></p>
+                            <h4 class="font-bold text-gray-800 mb-2 break-all overflow-wrap-anywhere"><?= htmlspecialchars($item['title']) ?></h4>
+                            <p class="text-sm text-gray-600 break-all overflow-wrap-anywhere"><?= htmlspecialchars($item['description']) ?></p>
                         </div>
                         <?php endforeach; ?>
                     </div>

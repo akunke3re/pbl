@@ -51,17 +51,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 WHERE id=$id
             ";
         } else {
-            // INSERT
             $sql = "
                 INSERT INTO blueprint (title, description, icon, color, urutan, uploaded_by)
                 VALUES ('$title', '$description', '$icon', '$color', $urutan, $uploaded_by)
             ";
         }
 
-        if ($db->query($sql)) {
+        $result = $db->query($sql);
+        if ($result) {
             $success = "The blueprint has been saved!";
+            // Redirect to clear POST data and prevent re-submission
+            header("Location: blueprint.php?success=1");
+            exit;
         } else {
-            $error = "Failed to save blueprint!";
+            $error = "Failed to save blueprint! " . pg_last_error($db->getConnection());
         }
     }
 }
@@ -88,6 +91,11 @@ if (isset($_GET['edit'])) {
 include 'includes/header.php';
 $icons = include "../config/icons.php"; 
 $selectedIcon = $editData['icon'] ?? "";
+
+// Check for success parameter from redirect
+if (isset($_GET['success'])) {
+    $success = "The blueprint has been saved!";
+}
 ?>
 
 <!-- SUCCESS -->
@@ -240,15 +248,15 @@ $selectedIcon = $editData['icon'] ?? "";
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 <?php if ($data): ?>
     <?php foreach ($data as $row): ?>
-        <div class="bg-white rounded-xl shadow-md p-5 hover:shadow-lg transition">
+        <div class="bg-white rounded-xl shadow-md p-5 hover:shadow-lg transition overflow-hidden">
 
             <div class="w-16 h-16 rounded-full flex items-center justify-center text-white mb-4"
                  style="background: <?= $row['color'] ?: '#6C5CE7' ?>">
                 <i class="<?= $row['icon'] ?> text-3xl"></i>
             </div>
 
-            <h4 class="font-bold text-lg mb-1"><?= htmlspecialchars($row['title']) ?></h4>
-            <p class="text-gray-600 text-sm mb-3"><?= htmlspecialchars($row['description']) ?></p>
+            <h4 class="font-bold text-lg mb-1 break-all overflow-wrap-anywhere"><?= htmlspecialchars($row['title']) ?></h4>
+            <p class="text-gray-600 text-sm mb-3 break-all overflow-wrap-anywhere"><?= htmlspecialchars($row['description']) ?></p>
 
             <p class="text-xs text-gray-400 mb-3">
                 Uploaded by: <?= htmlspecialchars($row['uploader'] ?? 'Unknown') ?>

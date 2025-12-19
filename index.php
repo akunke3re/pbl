@@ -122,14 +122,18 @@ include 'includes/header.php';
                     <?php 
                     $scopeTitle = !empty($item['title']) ? $item['title'] : (!empty($item['judul']) ? $item['judul'] : '');
                     $scopeDesc = !empty($item['description']) ? $item['description'] : (!empty($item['deskripsi']) ? $item['deskripsi'] : '');
+                    $rawColor = $item['color'] ?? '';
+                    $hexColor = (is_string($rawColor) && preg_match('/^#(?:[0-9a-fA-F]{3}){1,2}$/', $rawColor))
+                        ? $rawColor
+                        : '#2563EB';
                     $delay = $index * 100;
                     ?>
-                    <div class="card-hover bg-white p-6 rounded-xl shadow-lg border-t-4 border-blue-600 overflow-hidden" data-aos="fade-up" data-aos-delay="<?= $delay ?>">
-                        <div class="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                    <div class="card-hover bg-white p-6 rounded-xl shadow-lg border-t-4 overflow-hidden" style="border-top-color: <?= htmlspecialchars($hexColor) ?>;" data-aos="fade-up" data-aos-delay="<?= $delay ?>">
+                        <div class="w-16 h-16 rounded-lg flex items-center justify-center mb-4" style="background: <?= htmlspecialchars($hexColor) ?>;">
                             <?php if (!empty($item['icon'])): ?>
-                                <i class="<?php echo htmlspecialchars($item['icon']); ?> text-3xl text-blue-600"></i>
+                                <i class="<?php echo htmlspecialchars($item['icon']); ?> text-3xl text-white"></i>
                             <?php else: ?>
-                                <i class="fas fa-cog text-3xl text-blue-600"></i>
+                                <i class="fas fa-cog text-3xl text-white"></i>
                             <?php endif; ?>
                         </div>
                         <h3 class="text-xl font-bold mb-3 text-gray-800 break-all overflow-wrap-anywhere"><?php echo htmlspecialchars($scopeTitle); ?></h3>
@@ -349,38 +353,15 @@ include 'includes/header.php';
                     <!-- Blueprint Items in Grid -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <?php
-                        $colors = ['blue', 'green', 'red', 'purple', 'yellow', 'indigo', 'pink', 'orange', 'teal'];
-                        $colorMap = [
-                            'blue' => 'blue-600',
-                            'green' => 'green-600',
-                            'red' => 'red-600',
-                            'purple' => 'purple-600',
-                            'yellow' => 'yellow-600',
-                            'indigo' => 'indigo-600',
-                            'pink' => 'pink-600',
-                            'orange' => 'orange-600',
-                            'teal' => 'teal-600'
-                        ];
-                        $bgColorMap = [
-                            'blue' => 'from-blue-50 to-white border-blue-600',
-                            'green' => 'from-green-50 to-white border-green-600',
-                            'red' => 'from-red-50 to-white border-red-600',
-                            'purple' => 'from-purple-50 to-white border-purple-600',
-                            'yellow' => 'from-yellow-50 to-white border-yellow-600',
-                            'indigo' => 'from-indigo-50 to-white border-indigo-600',
-                            'pink' => 'from-pink-50 to-white border-pink-600',
-                            'orange' => 'from-orange-50 to-white border-orange-600',
-                            'teal' => 'from-teal-50 to-white border-teal-600'
-                        ];
-                        
                         foreach ($blueprint as $index => $item):
-                            $color = !empty($item['color']) ? $item['color'] : $colors[$index % count($colors)];
-                            $bgColor = isset($bgColorMap[$color]) ? $bgColorMap[$color] : 'from-blue-50 to-white border-blue-600';
-                            $iconColor = isset($colorMap[$color]) ? $colorMap[$color] : 'blue-600';
+                            $rawColor = $item['color'] ?? '';
+                            $hexColor = (is_string($rawColor) && preg_match('/^#(?:[0-9a-fA-F]{3}){1,2}$/', $rawColor))
+                                ? $rawColor
+                                : '#2563EB';
                             $delay = $index * 100;
                         ?>
-                        <div class="bg-gradient-to-br <?= $bgColor ?> p-6 rounded-xl shadow-lg card-hover border-t-4 overflow-hidden" data-aos="fade-up" data-aos-delay="<?= $delay ?>">
-                            <div class="w-12 h-12 bg-<?= $iconColor ?> rounded-full flex items-center justify-center mb-4">
+                        <div class="bg-gradient-to-br from-blue-50 to-white p-6 rounded-xl shadow-lg card-hover border-t-4 overflow-hidden" style="border-top-color: <?= htmlspecialchars($hexColor) ?>;" data-aos="fade-up" data-aos-delay="<?= $delay ?>">
+                            <div class="w-12 h-12 rounded-full flex items-center justify-center mb-4" style="background: <?= htmlspecialchars($hexColor) ?>;">
                                 <i class="<?= $item['icon'] ?> text-white text-xl"></i>
                             </div>
                             <h4 class="font-bold text-gray-800 mb-2 break-all overflow-wrap-anywhere"><?= htmlspecialchars($item['title']) ?></h4>
